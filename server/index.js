@@ -94,7 +94,7 @@ function startProxy(params) {
 
         configFilename = path.resolve(process.cwd(), configFilename);
         // Load config
-        let config;
+        var config;
         try {
             config = _.merge({}, configDefaults, require(configFilename));
         }
@@ -105,7 +105,7 @@ function startProxy(params) {
     }
     if(params.config){
        // Load config
-        let config;
+        var config;
         try {
             config = _.merge({}, configDefaults, params.config);
         }
