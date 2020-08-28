@@ -73,12 +73,7 @@ module.exports = class Master {
 
         ////////////
         function hackedRequest(req, res){
-            if (!req.headers['proxy-authorization'] || req.headers['proxy-authorization'] !== self._token) {
-                return writeEndRequest(res, 407, '[Master] Error: Wrong proxy credentials', {
-                    'Proxy-Authenticate': 'Basic realm="Scrapoxy"',
-                    'Content-Type': 'text/plain',
-                });
-            }
+    
             var trueUrl = req.url.substring(1)
             
             var parse = new URL(trueUrl)
