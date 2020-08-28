@@ -256,6 +256,6 @@ function debugMode() {
 
 module.exports = {
     start: (config) => {
-        startProxy({...config}
+        startProxy({...config})
     }
 }
