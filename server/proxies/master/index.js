@@ -65,12 +65,28 @@ module.exports = class Master {
         // Config server
         self._server = http.createServer();
 
-        self._server.on('request', request);
-        self._server.on('connect', connect);
+        // self._server.on('request', request);
+        // self._server.on('connect', connect);
 
+        self._hackServer = http.createServer();
+        self._hackServer.on('request', hackedRequest);
 
         ////////////
-
+        function hackedRequest(req, res){
+            if (!req.headers['proxy-authorization'] || req.headers['proxy-authorization'] !== self._token) {
+                return writeEndRequest(res, 407, '[Master] Error: Wrong proxy credentials', {
+                    'Proxy-Authenticate': 'Basic realm="Scrapoxy"',
+                    'Content-Type': 'text/plain',
+                });
+            }
+            var trueUrl = req.url.substring(1)
+            
+            var parse = new URL(trueUrl)
+            req.headers.host = parse.host
+            req.url = trueUrl
+            console.log(req.url, req.headers)
+            return requestImpl(req, res);
+        }
         function request(req, res) {
             // Check auth
             if (self._token) {
@@ -120,7 +136,7 @@ module.exports = class Master {
             }
 
             // Update headers
-            instance.updateRequestHeaders(req.headers);
+            //instance.updateRequestHeaders(req.headers);
 
             // Make request
             const proxyOpts = _.merge(createProxyOpts(req.url), {
@@ -400,23 +416,37 @@ module.exports = class Master {
 
 
     listen() {
-        return new Promise((resolve, reject) => {
-            this._server.listen(this._config.port, (err) => {
-                if (err) {
-                    return reject(new Error(`[Master] Cannot listen at port ${this._config.port} : ${err.toString()}`));
-                }
+        return Promise.all([
+            new Promise((resolve, reject) => {
 
-                winston.info('Proxy is listening at http://localhost:%d', this._config.port);
+                this._server.listen(this._config.port, (err) => {
+                    if (err) {
+                        return reject(new Error(`[Master] Cannot listen at port ${this._config.port} : ${err.toString()}`));
+                    }
 
-                return resolve();
-            });
-        });
+                    winston.info('Proxy is listening at http://localhost:%d', this._config.port);
+
+                    return resolve();
+                });
+            }),
+            new Promise((resolve, reject) => {
+                this._hackServer.listen(8887, (err) => {
+                    if (err) {
+                        return reject(new Error(`[Master] Cannot listen at port 8887 : ${err.toString()}`));
+                    }
+
+                    winston.info('Proxy is listening at http://localhost:%d', 8887);
+
+                    return resolve();
+                });
+            })
+        ])
     }
 
 
     shutdown() {
         winston.debug('[Master] shutdown');
-
+        this._hackServer.close();
         this._server.close();
     }
 };
