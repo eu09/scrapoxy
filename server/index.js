@@ -8,7 +8,6 @@ const _ = require('lodash'),
     ProviderDigitalOcean = require('./providers/digitalocean'),
     ProviderOVHCloud = require('./providers/ovhcloud'),
     ProviderVscale = require('./providers/vscale'),
-    fs = require('fs'),
     moment = require('moment'),
     ovh = require('ovh'),
     path = require('path'),
@@ -20,70 +19,6 @@ const _ = require('lodash'),
     winston = require('winston');
 
 const configDefaults = require('./config.defaults');
-
-if(1 === 2){
-
-        // Add timestamp to log
-        winston.remove(winston.transports.Console);
-        winston.add(winston.transports.Console, {timestamp: true});
-
-
-        program
-            .version('3.1.1')
-            .option('-d, --debug', 'Debug mode (increase verbosity)', debugMode)
-            .parse(process.argv);
-
-        program
-            .command('start [conf.json]')
-            .description('Start proxy with a configuration')
-            .action((configFilename) => startProxy(configFilename));
-
-        program
-            .command('init [conf.json]')
-            .description('Create configuration file with a template')
-            .action((configFilename) => initConfig(configFilename));
-
-        program
-            .command('test [url] [count]')
-            .description('Test the proxy at url')
-            .action((url, count) => testProxy(url, count));
-
-        program
-            .command('ovh-consumerkey [endpoint] [appKey] [appSecret]')
-            .description('Get the OVH consumerKey')
-            .action((endpoint, appKey, appSecret) => ovhConsumerKey(endpoint, appKey, appSecret));
-
-
-        program
-            .parse(process.argv);
-
-        if (!program.args.length) {
-            program.help();
-        }
-}
-
-////////////
-
-function initConfig(configFilename) {
-    if (!configFilename || configFilename.length <= 0) {
-        return winston.error('[Template] Error: Config file not specified');
-    }
-
-    fs.exists(configFilename, (exists) => {
-        if (exists) {
-            return winston.error('[Template] Error: Config file already exists');
-        }
-
-        template.write(configFilename, (err) => {
-            if (err) {
-                return winston.error('[Template] Error: Cannot write template to', configFilename);
-            }
-
-            winston.info('[Template] Template written in', configFilename);
-        });
-    });
-}
-
 
 function startProxy(params) {
     if(params.configFilename){
@@ -186,35 +121,6 @@ function startProxy(params) {
 }
 
 
-function testProxy(proxyUrl, count) {
-    if (!proxyUrl || proxyUrl.length <= 0) {
-        return winston.error('[Test] Error: URL not specified');
-    }
-
-    // Default: 10 / Max: 1000
-    count = Math.min(count || 10, 1000);
-
-    const proxy = new TestProxy(proxyUrl);
-
-    const promises = [];
-    for (let i = 0; i < count; ++i) {
-        promises.push(proxy.request());
-    }
-
-    Promise
-        .all(promises)
-        .then(() => {
-            winston.info('[Test] %d IPs found:', proxy.size);
-
-            proxy.count.forEach(
-                (value, key) => winston.info('[Test] %s (%d times)', key, value)
-            );
-        })
-        .catch((err) => {
-            winston.error('[Test] Error: Cannot get IP address:', err);
-        });
-}
-
 
 function ovhConsumerKey(endpoint, appKey, appSecret) {
     if (!appKey || appKey.length <= 0 || !appSecret || appSecret.length <= 0) {
@@ -243,16 +149,6 @@ function ovhConsumerKey(endpoint, appKey, appSecret) {
         winston.info('[OVH] Please validate your token here:', credential.validationUrl);
     });
 }
-
-
-function debugMode() {
-    winston.level = 'debug';
-}
-
-        program
-            .command('start [conf.json]')
-            .description('Start proxy with a configuration')
-            .action((configFilename) => startProxy(configFilename));
 
 module.exports = {
     start: (config) => {
