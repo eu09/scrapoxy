@@ -79,7 +79,6 @@ module.exports = class Master {
             var parse = new URL(trueUrl)
             req.headers.host = parse.host
             req.url = trueUrl
-            console.log(req.url, req.headers)
             return requestImpl(req, res);
         }
         function request(req, res) {
