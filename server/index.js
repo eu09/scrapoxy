@@ -21,45 +21,46 @@ const _ = require('lodash'),
 
 const configDefaults = require('./config.defaults');
 
+if(1 === 2){
 
-// Add timestamp to log
-winston.remove(winston.transports.Console);
-winston.add(winston.transports.Console, {timestamp: true});
-
-
-program
-    .version('3.1.1')
-    .option('-d, --debug', 'Debug mode (increase verbosity)', debugMode)
-    .parse(process.argv);
-
-program
-    .command('start [conf.json]')
-    .description('Start proxy with a configuration')
-    .action((configFilename) => startProxy(configFilename));
-
-program
-    .command('init [conf.json]')
-    .description('Create configuration file with a template')
-    .action((configFilename) => initConfig(configFilename));
-
-program
-    .command('test [url] [count]')
-    .description('Test the proxy at url')
-    .action((url, count) => testProxy(url, count));
-
-program
-    .command('ovh-consumerkey [endpoint] [appKey] [appSecret]')
-    .description('Get the OVH consumerKey')
-    .action((endpoint, appKey, appSecret) => ovhConsumerKey(endpoint, appKey, appSecret));
+        // Add timestamp to log
+        winston.remove(winston.transports.Console);
+        winston.add(winston.transports.Console, {timestamp: true});
 
 
-program
-    .parse(process.argv);
+        program
+            .version('3.1.1')
+            .option('-d, --debug', 'Debug mode (increase verbosity)', debugMode)
+            .parse(process.argv);
 
-if (!program.args.length) {
-    program.help();
+        program
+            .command('start [conf.json]')
+            .description('Start proxy with a configuration')
+            .action((configFilename) => startProxy(configFilename));
+
+        program
+            .command('init [conf.json]')
+            .description('Create configuration file with a template')
+            .action((configFilename) => initConfig(configFilename));
+
+        program
+            .command('test [url] [count]')
+            .description('Test the proxy at url')
+            .action((url, count) => testProxy(url, count));
+
+        program
+            .command('ovh-consumerkey [endpoint] [appKey] [appSecret]')
+            .description('Get the OVH consumerKey')
+            .action((endpoint, appKey, appSecret) => ovhConsumerKey(endpoint, appKey, appSecret));
+
+
+        program
+            .parse(process.argv);
+
+        if (!program.args.length) {
+            program.help();
+        }
 }
-
 
 ////////////
 
@@ -84,20 +85,33 @@ function initConfig(configFilename) {
 }
 
 
-function startProxy(configFilename) {
-    if (!configFilename || configFilename.length <= 0) {
-        return winston.error('[Start] Error: Config file not specified');
-    }
+function startProxy(params) {
+    if(params.configFilename){
+        var configFilename = params.configFilename
+        if (!configFilename || configFilename.length <= 0) {
+            return winston.error('[Start] Error: Config file not specified');
+        }
 
-    configFilename = path.resolve(process.cwd(), configFilename);
+        configFilename = path.resolve(process.cwd(), configFilename);
+        // Load config
+        let config;
+        try {
+            config = _.merge({}, configDefaults, require(configFilename));
+        }
+        catch (err) {
+            return winston.error('[Start] Error: Cannot load config:', err);
+        }
 
-    // Load config
-    let config;
-    try {
-        config = _.merge({}, configDefaults, require(configFilename));
     }
-    catch (err) {
-        return winston.error('[Start] Error: Cannot load config:', err);
+    if(params.config){
+       // Load config
+        let config;
+        try {
+            config = _.merge({}, configDefaults, params.config);
+        }
+        catch (err) {
+            return winston.error('[Start] Error: Cannot load config:', err);
+        } 
     }
 
     // Write logs (if specified)
@@ -233,4 +247,15 @@ function ovhConsumerKey(endpoint, appKey, appSecret) {
 
 function debugMode() {
     winston.level = 'debug';
+}
+
+        program
+            .command('start [conf.json]')
+            .description('Start proxy with a configuration')
+            .action((configFilename) => startProxy(configFilename));
+
+module.exports = {
+    start: (config) => {
+        startProxy({...config}
+    }
 }
