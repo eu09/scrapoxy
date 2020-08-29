@@ -10,7 +10,7 @@ I've done some work to make it more suited to my project, feel free to grab bits
 - Better Authentication: I didn't like defining plaintext passwords in the config, so have changed this to proper bcrypt hashes/checking
 - AWS instances are Spot instances instead of On Demand to save money. This will cause problems if you are limiting the instance types or regions you are using.
 - Cherry picked unmerged PRs from the original repo - Implement GCP as a provider, Don't crash on startup
-- This is not started in CLI, it is included as a regular node module
+- This is not started in CLI, it is included as a regular node module. It does not need to be installed globally - installing as a standard node module in a project is fine. In doing this, I may have prevented OVH from working (as I did not migrate an OVH CLI function to the new structure). Feel free to submit a PR if you fix this.
 
 **Usage**
 
