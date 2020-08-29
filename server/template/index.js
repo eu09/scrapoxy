@@ -36,7 +36,28 @@ const template = {
                 SecurityGroups: ['forward-proxy'],
             },
         },
-
+        {
+            port: 3128,
+          type: 'gcp',
+          region: 'YOUR REGION (could be: us-central1-a)',
+          tag: 'scrapoxy',
+          instance: {
+            machineType: 'n1-standard-1',
+            disks: [
+              { boot: true,
+                type: 'PERSISTENT',
+                initializeParams: {
+                  sourceImage: 'global/images/forward-proxy'
+                  }
+                }
+            ],
+            http: true,
+            networkInterfaces: [{
+                  'network': 'global/networks/default'
+            }],
+            tags: ['scrapoxy'],
+          },
+        },
         {
             type: 'ovhcloud',
             endpoint: 'YOUR ENDPOINT (could be: ovh-eu)',
