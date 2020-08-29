@@ -1,17 +1,75 @@
 # Scrapoxy
 
-![Scrapoxy](docs/logo.png)
+This is a fork of Scrapoxy, an abandonned project at https://github.com/fabienvauchelles/scrapoxy
 
-http://scrapoxy.io
+I've done some work to make it more suited to my project, feel free to grab bits.
 
-Scrapoxy **hides** your scraper behind a cloud.
+**Main Changes**
 
-It starts a pool of proxies to send your requests.
+- Requests are now in the format of http(s)://localhost:8888/http://www.domain.com/full-url - this gets around all of the MITM problems that the original project has, this allows all responses to have the instanceName. This library does not enforce a static user-agent per instance.
+- Better Authentication: I didn't like defining plaintext passwords in the config, so have changed this to proper bcrypt hashes/checking
+- AWS instances use Spot. This will cause problems if you are limiting the instance types or regions you are using.
+- Cherry picked unmerged PRs from the original repo - Implement GCP as a provider, Don't crash on startup
+- This is not started in CLI, it is included as a regular node module
 
-Now, you can crawl without thinking about blacklisting!
+**Usage**
 
-It is written in Javascript (ES6) with [Node.js](https://nodejs.org) & [AngularJS](https://angularjs.org) and it is **open source**!
+Module is not quite working correctly, I'm just requiring server/index.js at this stage.
 
-Latest news are on [scrapoxy.io](http://scrapoxy.io)!
+Start server: 
+```
+var scrapoxy = require("./server/index")
+var config = {
+    config: {
+        proxy: {
+            port: 8888,
+            auth: {
+                hash: '$2b$10$BCRYPT-HASH' // BCRYPT HASH OF PLAINTEXT PASSWORD
+            }
+        },
+        "commander": {
+            password_hash: '$2b$10$BCRYPT-HASH' // MUST BE BCRYPT HASH OF BASE64 ENCODED PASSWORD
+        },
+        "instance": {
+            "port": 3128,
+            "scaling": {
+                "min": 1,
+                "max": 1
+            },
+            autorestart: {
+                minDelay: 180000,
+                maxDelay: 600000,
+            },
+            scaling: {
+                downscaleDelay: 300000, 
+            },
+        },
+        "providers": [
+           
+            {
+                "type": "awsec2",
+                "accessKeyId": "ID",
+                "secretAccessKey": "KEY",
+                "region": "REGION",
+                "instance": {
+                    "InstanceType": "t3.nano",
+                    "ImageId": "ami-IMAGEID",
+                    "SecurityGroups": [
+                        "SGID"
+                    ]
+                }
+            }
+           
+        ]
+    }
+}
 
-See you in 1,000 years!
+scrapoxy.start(config)
+```
+
+**USAGE**
+
+```
+GET http://host:port/http://domain.com/path/to/url?inc_query=true
+X-Auth-Key: plaintext-proxy.auth.hash
+```
