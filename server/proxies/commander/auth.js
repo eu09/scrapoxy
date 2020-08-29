@@ -1,8 +1,9 @@
 'use strict';
+var bcrypt = require('bcrypt');
 
 module.exports = class Auth {
-    constructor(password) {
-        this._hash = new Buffer(password).toString('base64');
+    constructor(password_hash) {
+        this._hash = password_hash;
     }
 
 
@@ -12,7 +13,7 @@ module.exports = class Auth {
             return res.status(403).send('no authorization token found');
         }
 
-        if (token !== this._hash) {
+        if (!bcrypt.compareSync(token, this._hash)) {
             return res.status(403).send('wrong token');
         }
 
@@ -28,7 +29,7 @@ module.exports = class Auth {
 
         const token = socket.handshake.query.token;
 
-        if (token !== this._hash) {
+        if (!bcrypt.compareSync(token, this._hash)) {
             return next(new Error('wrong token'));
         }
 

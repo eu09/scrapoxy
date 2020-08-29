@@ -36,7 +36,7 @@ module.exports = class Commander {
         router.use('/stats', require('./api/stats')(stats));
 
         // Use auth
-        const auth = new Auth(this._config.commander.password);
+        const auth = new Auth(this._config.commander.password_hash);
         app.use(
             '/api',
             (req, res, next) => auth.express(req, res, next),

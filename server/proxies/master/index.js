@@ -10,7 +10,8 @@ const _ = require('lodash'),
     ProxyAgent = require('./proxy-agent'),
     sanitize = require('./sanitize'),
     url = require('url'),
-    winston = require('winston');
+    winston = require('winston'),
+    bcrypt = require('bcrypt');
 
 
 module.exports = class Master {
@@ -23,12 +24,8 @@ module.exports = class Master {
 
         // Proxy Auth
         if (self._config.auth &&
-            self._config.auth.username &&
-            self._config.auth.password) {
-            winston.debug("[Master] Found credentials with username '%s'", self._config.auth.username);
-
-            const usernamePasswordB64 = new Buffer(`${self._config.auth.username}:${self._config.auth.password}`).toString('base64');
-            self._token = `Basic ${usernamePasswordB64}`;
+            self._config.auth.hash) {
+            self._authRequestHash = self._config.auth.hash
         }
 
         // HTTP Agent
@@ -68,9 +65,9 @@ module.exports = class Master {
 
         ////////////
         function request(req, res){
-    
-            if (self._token) {
-                if (!req.headers['proxy-authorization'] || req.headers['proxy-authorization'] !== self._token) {
+            console.log("Have",self._authRequestHash,req.headers)
+            if (self._authRequestHash) {
+                if(!req.headers['x-auth-key'] || !bcrypt.compareSync(req.headers['x-auth-key'], self._authRequestHash)){
                     return writeEndRequest(res, 407, '[Master] Error: Wrong proxy credentials', {
                         'Proxy-Authenticate': 'Basic realm="Scrapoxy"',
                         'Content-Type': 'text/plain',
@@ -82,7 +79,7 @@ module.exports = class Master {
             var parse = new URL(trueUrl)
             req.headers.host = parse.host
             req.url = trueUrl
-            
+
             return requestImpl(req, res);
         }
 
@@ -122,7 +119,7 @@ module.exports = class Master {
 
             // Update headers
             //instance.updateRequestHeaders(req.headers);
-            delete req.headers['proxy-authorization'];
+            delete req.headers['x-auth-key'];
             // Make request
             const proxyOpts = _.merge(createProxyOpts(req.url), {
                 method: req.method,
