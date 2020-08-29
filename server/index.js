@@ -49,7 +49,9 @@ function startProxy(params) {
             return winston.error('[Start] Error: Cannot load config:', err);
         } 
     }
-
+    if(!config){
+        var config = configDefaults;
+    }
     // Write logs (if specified)
     if (config.logs && config.logs.path) {
         winston.add(winston.transports.File, {
@@ -101,7 +103,7 @@ function startProxy(params) {
                 {
                     return new ProviderGCP(provider, cfg.instance.port);
                 }
-                
+
                 case 'digitalocean':
                 {
                     return new ProviderDigitalOcean(provider, cfg.instance.port);

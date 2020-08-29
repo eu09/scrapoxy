@@ -65,7 +65,7 @@ module.exports = class Master {
 
         ////////////
         function request(req, res){
-            console.log("Have",self._authRequestHash,req.headers)
+
             if (self._authRequestHash) {
                 if(!req.headers['x-auth-key'] || !bcrypt.compareSync(req.headers['x-auth-key'], self._authRequestHash)){
                     return writeEndRequest(res, 407, '[Master] Error: Wrong proxy credentials', {
