@@ -8,7 +8,7 @@ I've done some work to make it more suited to my project, feel free to grab bits
 
 - Requests are now in the format of http(s)://localhost:8888/http://www.domain.com/full-url - this gets around all of the MITM problems that the original project has, this allows all responses to have the instanceName. This library does not enforce a static user-agent per instance.
 - Better Authentication: I didn't like defining plaintext passwords in the config, so have changed this to proper bcrypt hashes/checking
-- AWS instances use Spot. This will cause problems if you are limiting the instance types or regions you are using.
+- AWS instances are Spot instances instead of On Demand to save money. This will cause problems if you are limiting the instance types or regions you are using.
 - Cherry picked unmerged PRs from the original repo - Implement GCP as a provider, Don't crash on startup
 - This is not started in CLI, it is included as a regular node module
 
