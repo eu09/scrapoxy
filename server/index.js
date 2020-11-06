@@ -167,6 +167,5 @@ function ovhConsumerKey(endpoint, appKey, appSecret) {
 module.exports = {
     start: (config) => {
         startProxy({...config})
-    },
-    setScaling
+    }
 }
