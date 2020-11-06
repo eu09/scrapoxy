@@ -54,6 +54,14 @@ module.exports = class Manager extends EventEmitter {
         }
     }
 
+    setScaling(config){
+        winston.debug('[Manager] setScaling');
+
+        self._config.scaling.required = config.required;
+        self._config.scaling.min = config.min;
+        self._config.scaling.max = config.max;
+        self.emit('scaling:updated', self._config.scaling);
+    }
 
     start() {
         const self = this;

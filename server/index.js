@@ -79,7 +79,13 @@ function startProxy(params) {
 
     // Start
     main.listen();
-
+    var scaleConfig = {
+        required: config.scaling.required,
+        min: config.scaling.min,
+        max: config.scaling.max
+    }
+    console.log("Setting Scaling",scaleConfig)
+    main.setScaling(scaleConfig)
 
     ////////////
 
@@ -161,5 +167,6 @@ function ovhConsumerKey(endpoint, appKey, appSecret) {
 module.exports = {
     start: (config) => {
         startProxy({...config})
-    }
+    },
+    setScaling
 }

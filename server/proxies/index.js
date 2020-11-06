@@ -71,7 +71,10 @@ module.exports = class Proxies {
             .then(() => this._manager.waitForAliveInstances(this._config.instance.scaling.min));
     }
 
-
+    setScaling(config){
+        winston.debug('[Main] setScaling');
+        this._manager.setScaling(config)
+    }
     shutdown() {
         winston.debug('[Main] shutdown');
 
