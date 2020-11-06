@@ -93,6 +93,11 @@ module.exports = class Commander {
             io.emit('event', payload);
         });
 
+        //ALEC CUSTOM LINE
+        // Sets the min max on startup
+        
+        manager.emit('scaling:updated', {"downscaleDelay":300000,"min":1,"max":75,"required":75})
+
         stats.on('stats', (evStats) => {
             const payload = JSON.stringify({
                 event: 'stats',
@@ -101,6 +106,7 @@ module.exports = class Commander {
 
             io.emit('event', payload);
         });
+
     }
 
 
