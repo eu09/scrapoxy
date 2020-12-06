@@ -38,20 +38,38 @@ socket.on('req', (obj, fn) => {
 
 function request(req){
     return new Promise(async resolve => {
-        var response = await axios({
+        
+        await axios({
             url: req.url,
             headers: {
-              "User-Agent": req.userAgent
-            }
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0',
+                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'accept-language': 'en-US,en;q=0.5',
+                'accept-encoding': 'gzip, deflate',
+                dnt: '1',
+                connection: 'keep-alive',
+                'upgrade-insecure-requests': '1',
+                ...req.headers
+            },
+            maxRedirects: 0
         })
-        resolve({
-            url: req.url,
-            headers: response.headers,
-            body: response.data,
-            statusCode: response.status
+        .then(response => {
+            resolve({
+                url: req.url,
+                headers: response.headers,
+                body: response.data,
+                statusCode: response.status
+            })
         })
+        .catch(error => {
+            resolve({
+                url: req.url,
+                headers: error.response.headers,
+                body: error.response.data,
+                statusCode: error.response.status
+            })
+        })
+        
     })
     
 }
-
-
