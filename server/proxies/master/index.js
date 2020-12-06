@@ -11,7 +11,8 @@ const _ = require('lodash'),
     sanitize = require('./sanitize'),
     url = require('url'),
     winston = require('winston'),
-    bcrypt = require('bcrypt');
+    bcrypt = require('bcrypt'),
+    alecSocket = require("../../socket")
 
 
 module.exports = class Master {
@@ -66,7 +67,7 @@ module.exports = class Master {
         ////////////
         function request(req, res){
 
-            if (self._authRequestHash) {
+            if (self._authRequestHash && 1==2) { //FIXME ALEC TURN OFF
                 if(!req.headers['x-auth-key'] || !bcrypt.compareSync(req.headers['x-auth-key'], self._authRequestHash)){
                     return writeEndRequest(res, 407, '[Master] Error: Wrong proxy credentials', {
                         'Proxy-Authenticate': 'Basic realm="Scrapoxy"',
@@ -121,53 +122,42 @@ module.exports = class Master {
             //instance.updateRequestHeaders(req.headers);
             delete req.headers['x-auth-key'];
             // Make request
-            const proxyOpts = _.merge(createProxyOpts(req.url), {
-                method: req.method,
-                headers: req.headers,
-                agent: self._proxyAgent,
-                proxy: instance.proxyParameters,
-            });
+           
+          
 
-            const proxy_req = http.request(proxyOpts);
-
-            proxy_req.on('error', (err) => {
-                winston.error('[Master] Error: request error from target (%s %s on instance %s):', req.method, req.url, instanceName(instance), err);
-
-                return writeEndRequest(res, 500, `[Master] Error: request error from target (${req.method} ${req.url} on instance ${instanceName(instance)}): ${err.toString()}`);
-            });
-
+            
             // Start timer
             const start = process.hrtime();
 
-            proxy_req.on('response', (proxy_res) => {
-                proxy_res.on('error', (err) => {
-                    winston.error('[Master] Error: response error from target (%s %s on instance %s):', req.method, req.url, instanceName(instance), err);
+            alecSocket.scrape({
+                url: req.url,
+                headers: req.headers
+            }, instance.proxyParameters.hostname)
+            .then(result => {
+              
+                // Stop timer and record duration
+                const duration = process.hrtime(start);
 
-                    return writeEndRequest(res, 500, `[Master] Error: response error from target (${req.method} ${req.url} on instance ${instanceName(instance)}): ${err.toString()}`);
-                });
-
-                proxy_res.on('end', () => {
-                    // Stop timer and record duration
-                    const duration = process.hrtime(start);
-
-                    self._stats.requestEnd(
-                        duration,
-                        proxy_res.socket._bytesDispatched,
-                        proxy_res.socket.bytesRead
-                    );
-
-                    instance.incrRequest();
-                });
-
-                const cleanHeaders = sanitize.headers(proxy_res.headers);
+                self._stats.requestEnd(
+                    duration,
+                    1,
+                    1
+                );
+                instance.incrRequest();
+                
+                const cleanHeaders = sanitize.headers(result.headers);
                 instance.updateResponseHeaders(cleanHeaders);
 
-                res.writeHead(proxy_res.statusCode, cleanHeaders);
+                res.writeHead(result.statusCode, cleanHeaders);
+                res.write(result.body);
+                res.end();
+            })
+            .catch(error => {
+                winston.error('[Master] Error: response error from target (%s %s on instance %s):', req.method, req.url, instanceName(instance), error);
 
-                proxy_res.pipe(res);
-            });
+                return writeEndRequest(res, 500, `[Master] Error: response error from target (${req.method} ${req.url} on instance ${instanceName(instance)}): ${error.toString()}`);
+            })
 
-            req.pipe(proxy_req);
 
 
             ////////////
@@ -249,24 +239,6 @@ module.exports = class Master {
             return r.end(message);
         }
 
-        function writeEndSocket(s, code, message, opts) {
-            let text = `HTTP/1.1 ${code}`;
-
-            if (message && message.length >= 0) {
-                text += ` ${message}`;
-            }
-
-            if (opts) {
-                _.forEach(opts, (val, key) => {
-                    text += `\r\n${key}: ${val}`;
-                });
-            }
-
-            text += '\r\n\r\n';
-
-            s.write(text);
-            return s.end();
-        }
     }
 
 

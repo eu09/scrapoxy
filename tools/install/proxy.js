@@ -1,90 +1,57 @@
-'use strict';
+const io = require('socket.io-client');
+var bcrypt = require('bcryptjs');
+const socket = io('http://cetlalpha.us-east-2.elasticbeanstalk.com:3233');
+const axios = require("axios")
 
-const http = require('http'),
-    net = require('net');
+socket.connect()
+socket.on("connect", () => {
+    console.log(socket.id); // x8WIv7-mJelg7on_ALbx
+  });
+  socket.on("connection", () => {
+    console.log(socket.id); // x8WIv7-mJelg7on_ALbx
+  });
+  socket.on("disconnect", () => {
+    socket.connect()
+    console.log(socket.id); // undefined
+  });
 
-
-const config = {
-    port: process.env.port || 3128,
-};
-
-
-// Create server
-const server = http.createServer();
-
-// Accept client via CONNECT method
-server.on('connect', (req, socket, head) => {
-
-    // Decrypt target
-    parseTarget(req.url, (err, target) => {
-        if (err) {
-            console.error('Error (parsing): ', err);
-            return socket.end();
-        }
-
-        // Connect to target
-        console.log('connect to %s, port %d', target.hostname, target.port);
-        const proxy_socket = net.Socket();
-        proxy_socket.connect(target.port, target.hostname);
-
-        socket.on('error', (err) => {
-            console.error('Error (socket): ', err);
-            proxy_socket.end();
+socket.on('req', (obj, fn) => {
+        bcrypt.compare(`${JSON.stringify(obj.req)}-REQUESTSECRET-${obj.expiry}`, obj.hash).then(async result => {
+            if(result === true && new Date().getTime() < obj.expiry && obj.expiry < (new Date().getTime()+(60*60*1000))){
+                console.log("CLIENT REQ WILL SUCCEED",obj.req)
+                switch(obj.req.action){
+                    case "ping":
+                        fn({status: true, message: "pong"});
+                    break;
+                    case "scrape":
+                        var response = await request(obj.req)
+                        fn(response)
+                    break;
+                }
+            }else{
+                console.log("CLIENT REQ WILL FAIL",obj, result)
+            }
+        
         });
-
-        proxy_socket.on('error', (err) => {
-            console.error('Error (proxy_socket): ', err);
-            socket.end();
-        });
-
-        // Send hello
-        socket.write('HTTP/1.1 200 Connection established\r\n\r\n');
-        proxy_socket.write(head);
-
-        // Pipe data
-        socket.pipe(proxy_socket).pipe(socket);
-    });
-});
-
-// Response to PING on GET /ping
-server.on('request', (req, res) => {
-    if (req.method === 'GET' && req.url === '/ping') {
-        setTimeout(() => {
-            res.statusCode = 200;
-            res.end();
-        }, 1000);
-    }
-    else {
-        res.statusCode = 404;
-        res.end();
-    }
-});
-
-server.listen(config.port, (err) => {
-    if (err) {
-        return console.error('cannot start proxy');
-    }
-
-    console.log('proxy listening at port %d', config.port);
-});
+})
 
 
-////////////
-
-function parseTarget(url, callback) {
-    if (!url) return callback('No URL found');
-
-    const part = url.split(':');
-    if (part.length !== 2) {
-        return callback(`Cannot parse target: ${url}`);
-    }
-
-    const hostname = part[0],
-        port = parseInt(part[1]);
-
-    if (!hostname || !port) {
-        return callback(`Cannot parse target (2): ${url}`);
-    }
-
-    callback(null, {hostname, port});
+function request(req){
+    return new Promise(async resolve => {
+        var response = await axios({
+            url: req.url,
+            headers: {
+              "User-Agent": req.userAgent
+            }
+        })
+        resolve({
+            url: req.url,
+            headers: response.headers,
+            body: response.data,
+            statusCode: response.status
+        })
+    })
+    
 }
+
+

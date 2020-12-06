@@ -5,3 +5,4 @@ server/my-config*.json
 server/conf.json
 run.js
 crypt.js
+requestSecret.json

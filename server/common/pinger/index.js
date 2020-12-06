@@ -2,7 +2,9 @@
 
 const Promise = require('bluebird'),
     request = require('request'),
-    winston = require('winston');
+    winston = require('winston'),
+    alecSocket = require("../../socket")
+
 
 
 module.exports = {
@@ -14,32 +16,18 @@ module.exports = {
 
 ////////////
 
+//ALEC New Pinger
+
+
+
 function ping(options) {
+    console.log("PING!!",options.hostname)
     if (!options || !options.hostname || !options.port) {
         return Promise.reject(new Error('[ping] should have hostname and port'));
     }
-
+    return new Promise(resolve => {resolve()}) // ALWAYS PING ON - REMOVE ME
     winston.debug('[Pinger] ping: hostname=%s / port=%d', options.hostname, options.port);
-
-    const opts = {
-        method: 'GET',
-        url: `http://${options.hostname}:${options.port}/ping`,
-        timeout: options.timeout || 5000, // Set default timeout to 5s
-    };
-
-    return new Promise((resolve, reject) => {
-        request(opts, (err, res, body) => {
-            if (err) {
-                return reject(err);
-            }
-
-            if (res.statusCode !== 200) {
-                return reject(body);
-            }
-
-            return resolve(body);
-        });
-    });
+    return alecSocket.ping(options.hostname)
 }
 
 

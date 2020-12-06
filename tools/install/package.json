@@ -1,0 +1,16 @@
+{
+  "name": "install",
+  "version": "1.0.0",
+  "description": "",
+  "main": "proxy.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.0",
+    "bcryptjs": "^2.4.3",
+    "socket.io": "^3.0.3"
+  }
+}
