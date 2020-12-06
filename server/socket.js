@@ -24,15 +24,17 @@ io.on('connection', socket => {
         delete clients[clientIp]
     })
     
-    console.log("connection",clientIp)
+   
 
 
 });
 
 function ping(ip){
-    return sendSocket({
+    sendSocket({
         action: "ping"
     }, ip)
+    .then()
+
 }
 
 function scrape(req, ip){
@@ -44,7 +46,7 @@ function scrape(req, ip){
 }
 setInterval(()=>{
     console.log(Object.keys(clients))
-},5000)
+},60000)
 
 function sendSocket(obj, ip){
     return new Promise((resolve, reject) => {
@@ -55,8 +57,12 @@ function sendSocket(obj, ip){
         var expiry = new Date().getTime() + (1000*60*15)
         bcrypt.hash(`${JSON.stringify(obj)}-${requestSecret.secret}-${expiry}`, 10, function(err, hash) {
   
+            try{
+                clients[ip].emit('req', { req: obj, hash, expiry }, resolve);
+            }catch(e){
+                reject()
+            }
             
-            clients[ip].emit('req', { req: obj, hash, expiry }, resolve);
         });
     })
 }
