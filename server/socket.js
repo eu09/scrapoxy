@@ -1,4 +1,4 @@
-const requestSecret = require("/var/app/requestSecret.json")
+const requestSecret = require("/var/app/current/requestSecret.json")
 const httpServer = require("http").createServer();
 const io = require("socket.io")(httpServer, {
   // ...
