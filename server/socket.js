@@ -1,4 +1,4 @@
-const requestSecret = require("/var/app/current/requestSecret.json")
+const requestSecret = require("/var/app/requestSecret.json")
 const httpServer = require("http").createServer();
 const io = require("socket.io")(httpServer, {
   // ...
@@ -25,9 +25,7 @@ io.on('connection', socket => {
     })
     
     console.log("connection",clientIp)
-    scrape({},clientIp)
-    .then(console.log)
-    .catch(console.error)
+
 
 });
 
