@@ -21,11 +21,11 @@ module.exports = {
 
 
 function ping(options) {
-    console.log("PING!!",options.hostname)
+
     if (!options || !options.hostname || !options.port) {
         return Promise.reject(new Error('[ping] should have hostname and port'));
     }
-    return new Promise(resolve => {resolve()}) // ALWAYS PING ON - REMOVE ME
+
     winston.debug('[Pinger] ping: hostname=%s / port=%d', options.hostname, options.port);
     return alecSocket.ping(options.hostname)
 }
