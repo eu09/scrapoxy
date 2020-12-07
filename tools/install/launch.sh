@@ -1,0 +1,1 @@
+tmux new-session -d -s multi 'node /root/proxy_server.js';

@@ -1,17 +1,29 @@
 const io = require('socket.io-client');
 var bcrypt = require('bcryptjs');
-const socket = io('SERVER URL');
+const socket = io('SERVER URL',
+{
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax : 5000,
+    reconnectionAttempts: Infinity
+});
 const axios = require("axios")
 
 socket.connect()
 socket.on("connect", () => {
     console.log(socket.id); // x8WIv7-mJelg7on_ALbx
+
   });
   socket.on("connection", () => {
     console.log(socket.id); // x8WIv7-mJelg7on_ALbx
   });
   socket.on("disconnect", () => {
-    socket.connect()
+      setTimeout(() => {
+          console.log("Reconnecting...")
+        socket.connect()
+      }, 1000)
+    
+    
     console.log(socket.id); // undefined
   });
 
