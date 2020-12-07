@@ -51,17 +51,14 @@ setInterval(()=>{
 
 function sendSocket(obj, ip){
     return new Promise((resolve, reject) => {
-        if(!clients[ip]){
-       
-            reject("IP Doesn't exist")
-           return;
-        }
+
         var expiry = new Date().getTime() + (1000*60*15)
         bcrypt.hash(`${JSON.stringify(obj)}-${requestSecret.secret}-${expiry}`, 10, function(err, hash) {
-            
-            clients[ip].emit('req', { req: obj, hash, expiry }, resolve);
-        
-            
+            if(clients[ip] && typeof clients[ip] !== "undefined" && clients[ip].emit){
+                clients[ip].emit('req', { req: obj, hash, expiry }, resolve);
+            }else{
+                reject()
+            }
         });
     })
 }
