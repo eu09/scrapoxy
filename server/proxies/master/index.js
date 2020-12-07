@@ -67,7 +67,7 @@ module.exports = class Master {
         ////////////
         function request(req, res){
 
-            if (self._authRequestHash && 1==2) { //FIXME ALEC TURN OFF
+            if (self._authRequestHash) { 
                 if(!req.headers['x-auth-key'] || !bcrypt.compareSync(req.headers['x-auth-key'], self._authRequestHash)){
                     return writeEndRequest(res, 407, '[Master] Error: Wrong proxy credentials', {
                         'Proxy-Authenticate': 'Basic realm="Scrapoxy"',

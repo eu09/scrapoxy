@@ -1,6 +1,6 @@
 const io = require('socket.io-client');
 var bcrypt = require('bcryptjs');
-const socket = io('http://cetlalpha.us-east-2.elasticbeanstalk.com:3233');
+const socket = io('SERVER URL');
 const axios = require("axios")
 
 socket.connect()

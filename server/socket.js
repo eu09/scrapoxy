@@ -19,6 +19,7 @@ io.on('connection', socket => {
      var clientIp = getIp(socket);
 
      clients[clientIp] = socket;
+
     socket.on("disconnect", () => {
 
         delete clients[clientIp]
@@ -30,14 +31,14 @@ io.on('connection', socket => {
 });
 
 function ping(ip){
-    sendSocket({
+    return sendSocket({
         action: "ping"
     }, ip)
-    .then()
 
 }
 
 function scrape(req, ip){
+    console.log("scrape",req)
     return sendSocket({
         action: "scrape",
         url: req.url,
@@ -51,17 +52,15 @@ setInterval(()=>{
 function sendSocket(obj, ip){
     return new Promise((resolve, reject) => {
         if(!clients[ip]){
-            reject()
-            return;
+       
+            reject("IP Doesn't exist")
+           return;
         }
         var expiry = new Date().getTime() + (1000*60*15)
         bcrypt.hash(`${JSON.stringify(obj)}-${requestSecret.secret}-${expiry}`, 10, function(err, hash) {
-  
-            try{
-                clients[ip].emit('req', { req: obj, hash, expiry }, resolve);
-            }catch(e){
-                reject()
-            }
+            
+            clients[ip].emit('req', { req: obj, hash, expiry }, resolve);
+        
             
         });
     })
