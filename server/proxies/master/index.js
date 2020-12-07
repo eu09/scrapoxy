@@ -155,7 +155,7 @@ module.exports = class Master {
             .catch(error => {
                 winston.error('[Master] Error: response error from target (%s %s on instance %s):', req.method, req.url, instanceName(instance), error);
 
-                return writeEndRequest(res, 500, `[Master] Error: response error from target (${req.method} ${req.url} on instance ${instanceName(instance)}): ${error.toString()}`);
+                return writeEndRequest(res, 500, `[Master] Error: response error from target (${req.method} ${req.url} on instance ${instanceName(instance)})}`);
             })
 
 
