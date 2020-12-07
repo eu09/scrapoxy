@@ -7,9 +7,10 @@ const io = require("socket.io")(httpServer, {
 
 
 var bcrypt = require('bcryptjs');
+const { resolve } = require("bluebird");
 
 var clients = {}
-
+var waitingQueue = {}
 
 function getIp(socket){
     return socket.handshake.address.replace("::ffff:","");
@@ -19,6 +20,10 @@ io.on('connection', socket => {
      var clientIp = getIp(socket);
 
      clients[clientIp] = socket;
+     if(waitingQueue[clientIp]){
+         waitingQueue[clientIp]()
+         delete waitingQueue[clientIp]
+     }
 
     socket.on("disconnect", () => {
 
@@ -30,6 +35,16 @@ io.on('connection', socket => {
 
 });
 
+
+function waitForConnection(ip){
+    return new Promise (resolve => {
+        if(clients[ip]){
+            resolve()
+        }
+        waitingQueue[ip] = resolve
+    })
+}
+
 function ping(ip){
     return sendSocket({
         action: "ping"
@@ -38,7 +53,7 @@ function ping(ip){
 }
 
 function scrape(req, ip){
-    console.log("scrape",req)
+
     return sendSocket({
         action: "scrape",
         url: req.url,
@@ -64,5 +79,5 @@ function sendSocket(obj, ip){
 }
 httpServer.listen(3233);
 module.exports = {
-    ping, scrape
+    ping, scrape, waitForConnection
 }

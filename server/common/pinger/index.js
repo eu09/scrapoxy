@@ -11,6 +11,7 @@ module.exports = {
     ping,
     pingRetry,
     waitPing,
+    waitForConnection
 };
 
 
@@ -18,7 +19,9 @@ module.exports = {
 
 //ALEC New Pinger
 
-
+function waitForConnection(options){
+    return alecSocket.waitForConnection(options.hostname)
+}
 
 function ping(options) {
 
