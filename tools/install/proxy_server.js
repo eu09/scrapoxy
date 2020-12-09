@@ -1,5 +1,4 @@
 const io = require('socket.io-client');
-var bcrypt = require('bcryptjs');
 const socket = io('SERVER URL',
 {
     reconnection: true,
