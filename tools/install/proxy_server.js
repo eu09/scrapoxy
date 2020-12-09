@@ -26,7 +26,7 @@ socket.on("connect", () => {
     console.log(socket.id); // undefined
   });
 
-socket.on('req', (obj, fn) => {
+socket.on('req', async (obj, fn) => {
     switch(obj.req.action){
         case "ping":
             fn({status: true, message: "pong"});
