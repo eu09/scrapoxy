@@ -11,7 +11,6 @@ const _ = require('lodash'),
     sanitize = require('./sanitize'),
     url = require('url'),
     winston = require('winston'),
-    bcrypt = require('bcrypt'),
     alecSocket = require("../../socket")
 
 
@@ -67,14 +66,7 @@ module.exports = class Master {
         ////////////
         function request(req, res){
 
-            if (self._authRequestHash) { 
-                if(!req.headers['x-auth-key'] || !bcrypt.compareSync(req.headers['x-auth-key'], self._authRequestHash)){
-                    return writeEndRequest(res, 407, '[Master] Error: Wrong proxy credentials', {
-                        'Proxy-Authenticate': 'Basic realm="Scrapoxy"',
-                        'Content-Type': 'text/plain',
-                    });
-                }
-            }
+         
 
             var trueUrl = req.url.substring(1)
             var parse = new URL(trueUrl)
@@ -160,33 +152,7 @@ module.exports = class Master {
 
 
 
-            ////////////
-
-            function createProxyOpts(target) {
-                const opts = _.pick(
-                    url.parse(target),
-                    'protocol', 'hostname', 'port', 'path'
-                );
-
-                if (opts.protocol && opts.protocol === 'https:') {
-                    opts.ssl = true; // HTTPS over HTTP
-                }
-                else {
-                    opts.ssl = false; // HTTP
-                }
-                delete opts.protocol;
-
-                if (!opts.port) {
-                    if (opts.ssl) {
-                        opts.port = 443;
-                    }
-                    else {
-                        opts.port = 80;
-                    }
-                }
-
-                return opts;
-            }
+        
         }
 
         function instanceName(instance) {
