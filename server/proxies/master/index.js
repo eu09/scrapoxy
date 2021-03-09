@@ -66,7 +66,6 @@ module.exports = class Master {
         ////////////
         function request(req, res){
 
-         
 
             var trueUrl = req.url.substring(1)
             var parse = new URL(trueUrl)

@@ -234,6 +234,17 @@ module.exports = class ProviderAWSEC2 {
                             SpotInstanceType: "one-time"
                         }
                     },
+                    TagSpecifications: [
+                        {
+                            ResourceType: "instance",
+                            Tags: [
+                                {
+                                    "Key": "Name",
+                                    "Value": "Proxy"
+                                }
+                            ]
+                        }
+                    ],
                     Monitoring: {
                         Enabled: false,
                     },
